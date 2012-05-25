@@ -1,0 +1,3 @@
+
+jns = require('./main.js');
+

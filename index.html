@@ -1,0 +1,27 @@
+<html>
+<body title="first">
+<script lang="javascript">
+function setup() {
+	var res = xmlhttp.open('GET','/status',false);
+	document.write(res);
+}
+
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+
+addLoadEvent(setup);
+
+</script>
+<p>Hello <i>world</i>.</p>
+</html>
