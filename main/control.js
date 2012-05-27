@@ -1,19 +1,28 @@
 
 (function(){
 
-	var CommandServer = require('../ui/commandserver.js').Server;
+	var main_idpath = 'sys.main';
+	var main_version = '0.1';
+	var jns;
 
-	exports.startCommandServer = function(jns,port) {	
+	var url = require('url');
+	var fs = require('fs');
+	var CommandServer = require('../ui/commandserver.js').Server;
+	
+	exports.init = function(thejns) {
+		jns = thejns;
+		jns.logmessage('JNS '+main_version);
+		jns.registry.register(main_idpath,messagehandler);
+	}
+
+	exports.startCommandServer = function(webroot,port) {	
 		jns.logmessage('- about to listen on port '+port);
-		jns.commandserver = new CommandServer(port,'post','/command',commandhandler(),jns.logmessage);
+		var routes = [
+			{method: 'post', path: '/command', handler: commandhandler()}
+		];
+		jns.commandserver = new CommandServer(webroot,port,routes,jns.logmessage);
 		jns.commandserver.listen();
 	};
-	
-	exports.startWebServer = function(jns,port) {
-		jns.logmessage('- about to listen on port '+port);
-		jns.webserver = new CommandServer(port,'get','/status',webhandler(),jns.logmessage);
-		jns.webserver.listen();		
-	}
 	
 	function commandhandler() {
 	
@@ -29,14 +38,19 @@
 			
 			send: function(jns,command,args) {
 				var argarr = args.split(/\s*,\s*/);
-				var message = {source: "sys.console", dest: argarr[0], messagetype: argarr[1]};
-				return jns.registry.send(message.dest,message);
+				var dest = argarr[0];
+				var messagetype = argarr[1];
+				if (argarr.length < 2) {
+					return jns.registry.send(dest,{error:'expected arguments: dest,messagetype'});
+				}
+				return jns.registry.send(message.dest,{source: "sys.console", dest: dest, messagetype: messagetype});
 			}
 		};
 	
 		var dispatch = require('../util/dispatch.js').dispatcher(commands);
 	
-		return function(line) {
+		return function(req) {
+			var line = req.body.src;
 			jns.logmessage("main command: "+line);
 			var result = dispatch(jns,line);
 			if ('parseerror' in result) {
@@ -50,14 +64,6 @@
 				return result;
 			}
 			return 'internal error: no known key in dispatch result!';
-		}
-	}
-	
-	function webhandler() {
-		
-		return function(req) {
-			jns.logmessage('webserver: '+req);
-			return 'dummy';
 		}
 	}
 	
@@ -76,7 +82,36 @@
 			default: throw new Error(main_idpath+': unknown message - '+message.messagetype);
 		}
 	}
-	exports.messagehandler = messagehandler;
 
-
+	exports.startWebServer = function(webroot,port) {
+		jns.logmessage('- about to listen on port '+port);
+		var routes = [
+			{method: 'get', path: '/:top', handler: webhandler_index()},
+			{method: 'get', path: '/status/:id', handler: webhandler_status()}
+		];
+		jns.webserver = new CommandServer(webroot,port,routes,jns.logmessage);
+		jns.webserver.listen();		
+	}
+	
+	function webhandler_index() {		
+		var indexpath = '/index.html';
+		return function(req) {
+			requrl = url.parse(req.url,true);
+			if (requrl.pathname == indexpath) {
+				return file_contents(jns.webroot+indexpath);
+			}
+			return 'index '+req.params.top;
+		}
+	}
+	
+	function webhandler_status() {		
+		return function(req) {
+			return 'status '+req.params.id;
+		}
+	}
+	
+	function file_contents(path) {
+		return fs.readFileSync(path,'utf8');
+	}
+	
 })();

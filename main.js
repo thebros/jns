@@ -3,16 +3,11 @@
 
 (function() {
 	
-	var main_idpath = "sys.main";
-	var main_version = "0.1";
-
 	var logwrap = require('./util/logging.js').logwrap;
 	
 	var jns = {};
 	jns.logmessage = console.log;
 
-	jns.logmessage('JNS '+main_version);
-	
 	jns.shuttingdown = false;
 	jns.unavailable = function(funname) {throw new Error('Function "'+funname+'" is not available at this time');}
 
@@ -22,15 +17,16 @@
 	load_subsystems();
 		
 	jns.control = require('./main/control.js');
-	jns.registry.register(main_idpath,jns.control.messagehandler);
-
+	jns.control.init(jns);
+	
 	jns.bindir = process.cwd();
 
+	jns.webroot = jns.bindir;
 
 	(function mainfunction() {
 	
-		jns.control.startCommandServer(jns,9913);
-		jns.control.startWebServer(jns,9914);
+		jns.control.startCommandServer(jns.webroot,9913);
+		jns.control.startWebServer(jns.webroot,9914);
 		
 		jns.logmessage('- startup');
 		startup();
@@ -51,11 +47,6 @@
 
 	function startwatchdog(ppid) {
 		jns.spawn("node watchdog.js",[ppid],{cwd: jns.bindir})
-	}
-
-
-	jns.logmessage = function(mess) {
-		jns.logmessage("logmessage| "+mess);
 	}
 
 
