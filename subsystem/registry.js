@@ -31,7 +31,6 @@
 			this.jns.subsystem_error('registry.register','handler not defined');
 		}
 		if (typeof this.registry[idpath] != 'undefined') {
-			console.log(typeof this.registry[idpath]);
 			this.jns.subsystem_warning('registry.register','key already in registry: '+idpath);
 		}
 		this.registry[idpath] = handler;
@@ -69,7 +68,6 @@
 		this.jns.subsystem_error('registry.send','key not in registry: '+idpath);
 		
 		function sendto(dest,idpath,message) {		
-			console.log('registry trying "'+dest+'"');	
 			var handler = that.registry[dest];
 			if (typeof handler == 'undefined') {
 				return null;

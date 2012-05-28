@@ -3,7 +3,7 @@
 
 	var ask = require('../util/ask.js');
 	var cc = require('../ui/commandclient.js');
-	
+	var logmessage = require('../util/logging.js').logmessage;
 	
 	exports.interactive = function() {
 		
@@ -18,7 +18,7 @@
 			var line;
 			
 			if (err) {
-				console.log(err);
+				logmessage(err);
 			}
 			
 			else {

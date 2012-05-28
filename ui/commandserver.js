@@ -3,16 +3,17 @@
 
 	var express = require('express');
 	var url = require('url');
+	var logmessage = require('../util/logging.js').logmessage;
 	
 	// call with 'new'!
-	exports.Server = function(webroot,portno,routes,logmessage) {
+	exports.Server = function(webroot,portno,routes) {
 
 		if (this==global) {
 			throw new Error("commandserver.Server must be called with 'new'")
 		}
 		
 		var staticroute = {urlpath: '/static', filepath: webroot+'/static'};
-		this.httpserver = makeserver(routes,staticroute,logmessage);
+		this.httpserver = makeserver(routes,staticroute);
 		
 		this.listen = function() {
 			this.httpserver.listen(portno);
@@ -21,7 +22,7 @@
 		return this;
 	}
 	
-	function makeserver(routes,staticroute,logmessage) {
+	function makeserver(routes,staticroute) {
 		
 		var app = express.createServer();
 		app.use(express.bodyParser());	
@@ -39,7 +40,7 @@
 		var route;
 		for (var r = 0; r<routes.length; ++r) {
 			route = routes[r];
-			app[route.method](route.path,wraphandler(route,logmessage));
+			app[route.method](route.path,wraphandler(route));
 		}
 
 		if (staticroute) {
@@ -66,7 +67,7 @@
 		}
 	}
 	
-	function wraphandler(route,logmessage) {
+	function wraphandler(route) {
 	
 		return function(req,res) {
 			var result;
@@ -76,6 +77,7 @@
 			logmessage('serving '+route.method+' '+route.path);
 			try {
 				result = route.handler(req);
+				logmessage('commandserver.wraphandler: route.handler returned '+result);
 				if (result.substring(0,1)=='<') {
 					content_type = 'text/html';
 					resultx = result;
@@ -88,30 +90,10 @@
 				res.writeHead(200,{'Content-type': content_type});
 				res.end(resultx);
 			}
-			catch (ex) {
-				
-				console.log("Exception!");
-				
-				result = ex.toString();
-				logmessage(result);
+			catch (ex) {				
+				logmessage("Exception in commandserver.wraphandler: "+ex.toString());
 			}			
 		}
 	}
 })();
 
-
-exports.testserver = function() {
-
-	var s = new exports.Server(9913,testhandler,testlogmessage);
-	s.listen();
-	
-	function testhandler(line) {
-		return JSON.stringify({testhandler: line});
-	}
-	
-	function testlogmessage(message) {
-		console.log("testlogmessage: "+message);
-	}
-	
-	return s;
-}

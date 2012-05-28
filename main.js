@@ -3,17 +3,18 @@
 
 (function() {
 	
-	var logwrap = require('./util/logging.js').logwrap;
+	var logging = require('./util/logging.js');
+	var logwrap = logging.logwrap;
+	var logmessage = logging.logmessage;
 	
 	var jns = {};
-	jns.logmessage = console.log;
 
 	jns.shuttingdown = false;
 	jns.unavailable = function(funname) {throw new Error('Function "'+funname+'" is not available at this time');}
 
 	jns.spawn = require('child_process').spawn;
 
-	jns.logmessage('- loading subsystems');
+	logmessage('- loading subsystems');
 	load_subsystems();
 		
 	jns.control = require('./main/control.js');
@@ -28,7 +29,7 @@
 		jns.control.startCommandServer(jns.webroot,9913);
 		jns.control.startWebServer(jns.webroot,9914);
 		
-		jns.logmessage('- startup');
+		logmessage('- startup');
 		startup();
 	
 		logwrap(mainloop);
@@ -51,12 +52,12 @@
 
 
 	jns.subsystem_error = function(subsystem,mess) {
-		jns.logmessage("ERROR: "+subsystem+" - "+mess);
+		logmessage("ERROR: "+subsystem+" - "+mess);
 	}
 
 
 	jns.subsystem_warning = function(subsystem,mess) {
-		jns.logmessage("WARNING: "+subsystem+" - "+mess);
+		logmessage("WARNING: "+subsystem+" - "+mess);
 	}
 
 
@@ -65,7 +66,7 @@
 		var ss;
 		for (var s in subsystems) {
 			ss = subsystems[s];
-			jns.logmessage('-- '+ss);
+			logmessage('-- '+ss);
 			jns[ss] = new require('./subsystem/'+ss+'.js').Subsystem(jns);
 		}
 	}

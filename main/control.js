@@ -7,20 +7,21 @@
 
 	var url = require('url');
 	var fs = require('fs');
+	var logmessage = require('../util/logging.js').logmessage;
 	var CommandServer = require('../ui/commandserver.js').Server;
 	
 	exports.init = function(thejns) {
 		jns = thejns;
-		jns.logmessage('JNS '+main_version);
+		logmessage('JNS '+main_version);
 		jns.registry.register(main_idpath,messagehandler);
 	}
 
 	exports.startCommandServer = function(webroot,port) {	
-		jns.logmessage('- about to listen on port '+port);
+		logmessage('- about to listen on port '+port);
 		var routes = [
 			{method: 'post', path: '/command', handler: commandhandler()}
 		];
-		jns.commandserver = new CommandServer(webroot,port,routes,jns.logmessage);
+		jns.commandserver = new CommandServer(webroot,port,routes);
 		jns.commandserver.listen();
 	};
 	
@@ -29,7 +30,7 @@
 		var commands = {
 			
 			version: function(jns,command,args) {
-				return "0.1"
+				return '0.1'
 			},
 			
 			registry: function(jns,command,args) {
@@ -51,7 +52,7 @@
 	
 		return function(req) {
 			var line = req.body.src;
-			jns.logmessage("main command: "+line);
+			logmessage("main command: "+line);
 			var result = dispatch(jns,line);
 			if ('parseerror' in result) {
 				return {error: "error parsing command: "+result.parseerror};
@@ -60,7 +61,7 @@
 				return {error: "error running command: "+result.runerror};
 			}
 			if ('result' in result) {
-				jns.logmessage("main result: "+result.result);
+				logmessage("main result: "+result.result);
 				return result;
 			}
 			return 'internal error: no known key in dispatch result!';
@@ -69,14 +70,14 @@
 	
 	function messagehandler(idpath,message) {
 		jns.messaging.noforeignidpath(idpath,main_idpath);
-		jns.logmessage("messagehandler: "+message.messagetype);
+		logmessage("messagehandler: "+message.messagetype);
 		switch (message.messagetype) {
 			case 'basic.identify': return 'JNS '+main_version;
 			case 'basic.shutdown':
 				if (! jns.shuttingdown) {
 					jns.shuttingdown = true;
 					jns.registry.broadcast('sys.','basic.shutdown');
-					jns.logmessage('main shutting down');
+					logmessage('main shutting down');
 					process.exit(0);
 				}
 			default: throw new Error(main_idpath+': unknown message - '+message.messagetype);
@@ -84,12 +85,12 @@
 	}
 
 	exports.startWebServer = function(webroot,port) {
-		jns.logmessage('- about to listen on port '+port);
+		logmessage('- about to listen on port '+port);
 		var routes = [
 			{method: 'get', path: '/:top', handler: webhandler_index()},
 			{method: 'get', path: '/status/:id', handler: webhandler_status()}
 		];
-		jns.webserver = new CommandServer(webroot,port,routes,jns.logmessage);
+		jns.webserver = new CommandServer(webroot,port,routes);
 		jns.webserver.listen();		
 	}
 	

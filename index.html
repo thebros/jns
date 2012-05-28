@@ -2,8 +2,9 @@
 <body title="first">
 <script lang="javascript">
 function setup() {
-	var res = xmlhttp.open('GET','/status',false);
-	document.write(res);
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open('GET','http:/localhost:9914/status/test',false);
+	xmlhttp.send();
 }
 
 function addLoadEvent(func) {
