@@ -5,10 +5,11 @@
 	var main_version = '0.1';
 	var jns;
 
-	var url = require('url');
-	var fs = require('fs');
 	var logmessage = require('../util/logging.js').logmessage;
-	var CommandServer = require('../ui/commandserver.js').Server;
+	var cs = require('../ui/commandserver.js');
+	var CommandServer = cs.Server;
+	var command_routes = require('./commands.js').routes;
+	var webserver_routes = require('./webserver.js').routes;
 	
 	exports.init = function(thejns) {
 		jns = thejns;
@@ -18,54 +19,14 @@
 
 	exports.startCommandServer = function(webroot,port) {	
 		logmessage('- about to listen on port '+port);
-		var routes = [
-			{method: 'post', path: '/command', handler: commandhandler()}
-		];
-		jns.commandserver = new CommandServer(webroot,port,routes);
+		jns.commandserver = new CommandServer(webroot,port,command_routes);
 		jns.commandserver.listen();
 	};
 	
-	function commandhandler() {
-	
-		var commands = {
-			
-			version: function(jns,command,args) {
-				return '0.1'
-			},
-			
-			registry: function(jns,command,args) {
-				return jns.registry.dump();
-			},
-			
-			send: function(jns,command,args) {
-				var argarr = args.split(/\s*,\s*/);
-				var dest = argarr[0];
-				var messagetype = argarr[1];
-				if (argarr.length < 2) {
-					return jns.registry.send(dest,{error:'expected arguments: dest,messagetype'});
-				}
-				return jns.registry.send(message.dest,{source: "sys.console", dest: dest, messagetype: messagetype});
-			}
-		};
-	
-		var dispatch = require('../util/dispatch.js').dispatcher(commands);
-	
-		return function(req) {
-			var line = req.body.src;
-			logmessage("main command: "+line);
-			var result = dispatch(jns,line);
-			if ('parseerror' in result) {
-				return {error: "error parsing command: "+result.parseerror};
-			}
-			if ('runerror' in result) {
-				return {error: "error running command: "+result.runerror};
-			}
-			if ('result' in result) {
-				logmessage("main result: "+result.result);
-				return result;
-			}
-			return 'internal error: no known key in dispatch result!';
-		}
+	exports.startWebServer = function(webroot,port) {
+		logmessage('- about to listen on port '+port);
+		jns.webserver = new CommandServer(webroot,port,webserver_routes);
+		jns.webserver.listen();		
 	}
 	
 	function messagehandler(idpath,message) {
@@ -84,35 +45,4 @@
 		}
 	}
 
-	exports.startWebServer = function(webroot,port) {
-		logmessage('- about to listen on port '+port);
-		var routes = [
-			{method: 'get', path: '/:top', handler: webhandler_index()},
-			{method: 'get', path: '/status/:id', handler: webhandler_status()}
-		];
-		jns.webserver = new CommandServer(webroot,port,routes);
-		jns.webserver.listen();		
-	}
-	
-	function webhandler_index() {		
-		var indexpath = '/index.html';
-		return function(req) {
-			requrl = url.parse(req.url,true);
-			if (requrl.pathname == indexpath) {
-				return file_contents(jns.webroot+indexpath);
-			}
-			return 'index '+req.params.top;
-		}
-	}
-	
-	function webhandler_status() {		
-		return function(req) {
-			return 'status '+req.params.id;
-		}
-	}
-	
-	function file_contents(path) {
-		return fs.readFileSync(path,'utf8');
-	}
-	
 })();

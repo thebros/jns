@@ -4,6 +4,7 @@
 	var express = require('express');
 	var url = require('url');
 	var logmessage = require('../util/logging.js').logmessage;
+	var util = require('util');
 	
 	// call with 'new'!
 	exports.Server = function(webroot,portno,routes) {
@@ -13,7 +14,7 @@
 		}
 		
 		var staticroute = {urlpath: '/static', filepath: webroot+'/static'};
-		this.httpserver = makeserver(routes,staticroute);
+		this.httpserver = makeserver(webroot,routes,staticroute);
 		
 		this.listen = function() {
 			this.httpserver.listen(portno);
@@ -22,7 +23,30 @@
 		return this;
 	}
 	
-	function makeserver(routes,staticroute) {
+	exports.stdres = function(result,res) {
+		
+		logmessage('commandserver.stdres: route.handler returning '+util.inspect(result,true,2,true));
+		
+		if (result.substring(0,1)=='<') {
+			content_type = 'text/html';
+			resultx = result;
+		}
+		else {
+			content_type = 'application/json';
+			resultx = JSON.stringify(result);
+		}
+		logmessage(content_type+': '+resultx);
+		res.writeHead(200,{'Content-type': content_type});
+		res.end(resultx);
+	}
+
+	exports.errorres = function(result,res) {		
+		logmessage('commandserver.errorres: route.handler returning '+result);		
+		res.writeHead(500,{'Content-type': 'text/plain'});
+		res.end(result);
+	}
+
+	function makeserver(webroot,routes,staticroute) {
 		
 		var app = express.createServer();
 		app.use(express.bodyParser());	
@@ -40,7 +64,7 @@
 		var route;
 		for (var r = 0; r<routes.length; ++r) {
 			route = routes[r];
-			app[route.method](route.path,wraphandler(route));
+			app[route.method](route.path,wraphandler(webroot,route));
 		}
 
 		if (staticroute) {
@@ -67,7 +91,7 @@
 		}
 	}
 	
-	function wraphandler(route) {
+	function wraphandler(webroot,route) {
 	
 		return function(req,res) {
 			var result;
@@ -76,19 +100,7 @@
 			var content_type;
 			logmessage('serving '+route.method+' '+route.path);
 			try {
-				result = route.handler(req);
-				logmessage('commandserver.wraphandler: route.handler returned '+result);
-				if (result.substring(0,1)=='<') {
-					content_type = 'text/html';
-					resultx = result;
-				}
-				else {
-					content_type = 'application/json';
-					resultx = JSON.stringify(result);
-				}
-				logmessage(content_type+': '+resultx);
-				res.writeHead(200,{'Content-type': content_type});
-				res.end(resultx);
+				route.handler(webroot,req,res);
 			}
 			catch (ex) {				
 				logmessage("Exception in commandserver.wraphandler: "+ex.toString());
