@@ -19,13 +19,13 @@
 
 	exports.startCommandServer = function(webroot,port) {	
 		logmessage('- about to listen on port '+port);
-		jns.commandserver = new CommandServer(webroot,port,command_routes);
+		jns.commandserver = new CommandServer(webroot,port,command_routes(jns));
 		jns.commandserver.listen();
 	};
 	
 	exports.startWebServer = function(webroot,port) {
 		logmessage('- about to listen on port '+port);
-		jns.webserver = new CommandServer(webroot,port,webserver_routes);
+		jns.webserver = new CommandServer(webroot,port,webserver_routes(jns));
 		jns.webserver.listen();		
 	}
 	

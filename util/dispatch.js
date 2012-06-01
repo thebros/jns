@@ -12,7 +12,7 @@ exports.dispatcher = function(commands) {
 			if (! line.match(/\s/)) {
 				line += ' ';
 			}
-			var r = line.match(/^(\S+)\s+((.*))?$/);
+			var r = line.match(/^(\S+)\s+(.*)?$/);
 			if (!r) {
 				throw new Error("Unrecognized command-line format")
 			}

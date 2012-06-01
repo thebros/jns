@@ -8,10 +8,12 @@
 	var stdres = cs.stdres;
 	var errorres = cs.errorres;
 
-	exports.routes = [
-		{method: 'get', path: '/:top', handler: webhandler_index()},
-		{method: 'get', path: '/status/:id', handler: webhandler_status()}
-	];
+	exports.routes = function(jns) {
+		return [
+			{method: 'get', path: '/:top', handler: webhandler_index()},
+			{method: 'get', path: '/status/:id', handler: webhandler_status()}
+		];
+	};
 
 	function webhandler_index() {		
 		var indexpath = '/index.html';

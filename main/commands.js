@@ -7,9 +7,11 @@
 	var stdres = cs.stdres;
 	var errorres = cs.errorres;
 
-	exports.routes = [
-		{method: 'post', path: '/command', handler: commandhandler(*)}
-	];
+	exports.routes = function(jns) {
+		return [
+			{method: 'post', path: '/command', handler: commandhandler(jns)}
+		];
+	};
 
 	function commandhandler(jns) {
 	
@@ -42,6 +44,7 @@
 			logmessage("main command: "+line);
 			
 			var result = dispatch(jns,line);
+			
 			if ('parseerror' in result) {
 				errorres("error parsing command: "+result.parseerror,res);
 				return;
@@ -55,9 +58,10 @@
 			if ('result' in result) {
 				logmessage("main result: "+result.result);
 				stdres(result,res);
+				return;
 			}
 			
-			errorres('internal error: no known key in dispatch result!',res);
+			errorres('internal error: no known key in dispatch result - '+line,res);
 		}
 	}
 	
