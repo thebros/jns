@@ -25,9 +25,10 @@
 	
 	exports.stdres = function(result,res) {
 		
-		logmessage('commandserver.stdres: route.handler returning '+util.inspect(result,true,2,true));
+		var innerresult = result.result;
+		logmessage('commandserver.stdres: route.handler returning '+util.inspect(innerresult,true,2,true));
 		
-		if (result.substring(0,1)=='<') {
+		if (innerresult.substring(0,1)=='<') {
 			content_type = 'text/html';
 			resultx = result;
 		}

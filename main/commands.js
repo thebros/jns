@@ -8,7 +8,7 @@
 	var errorres = cs.errorres;
 
 	exports.routes = [
-		{method: 'post', path: '/command', handler: commandhandler()}
+		{method: 'post', path: '/command', handler: commandhandler(*)}
 	];
 
 	function commandhandler(jns) {
@@ -36,7 +36,7 @@
 		
 		var dispatch = dispatch_module.dispatcher(commands)
 	
-		return function(req,res) {
+		return function(webroot,req,res) {
 		
 			var line = req.body.src;
 			logmessage("main command: "+line);
