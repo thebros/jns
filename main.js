@@ -15,11 +15,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var logging = require('./util/logging.js');
 	var logwrap = logging.logwrap;
 	var logmessage = logging.logmessage;
+	var TrackException = require('./exceptions/track.js').TrackException;
 	
 	var jns = {};
 
 	jns.shuttingdown = false;
-	jns.unavailable = function(funname) {throw new Error('Function "'+funname+'" is not available at this time');}
+	jns.unavailable = function(funname) {throw new TrackException('Function "'+funname+'" is not available at this time','main');}
 
 	jns.spawn = require('child_process').spawn;
 

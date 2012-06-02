@@ -9,7 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 (function() {
-	
+
+	var TrackException = require('../exceptions/track.js').TrackException;
+
 	exports.Subsystem = function(jns) {
 		this.jns = jns;
 		this.send = send;
@@ -26,7 +28,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 	function noforeignidpath(idpath,ownidpath) {
 		if (idpath != ownidpath) {
-			throw new Error('Handler for "'+ownidpath+'" does not support messages for subids');
+			throw new TrackException('Handler for "'+ownidpath+'" does not support messages for subids','messaging');
 		}
 	}
 	

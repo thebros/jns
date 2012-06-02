@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var CommandServer = cs.Server;
 	var command_routes = require('./commands.js').routes;
 	var webserver_routes = require('./webserver.js').routes;
+	var TrackException = require('../exceptions/track.js').TrackException;
 	
 	exports.init = function(thejns) {
 		jns = thejns;
@@ -50,7 +51,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 					logmessage('main shutting down');
 					process.exit(0);
 				}
-			default: throw new Error(main_idpath+': unknown message - '+message.messagetype);
+			default: throw new TrackException('unknown message - '+message.messagetype,main_idpath);
 		}
 	}
 

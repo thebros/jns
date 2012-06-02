@@ -9,43 +9,49 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 
-exports.dispatcher = function(commands) {
+(function() {
+
+	var TrackException = require('../exceptions/track.js').TrackException;
 	
-	// returns one of :-
-	//  {parseerror: message}
-	//  {runerror: message}
-	//  {result: result}
-	function dispatch(context,commandline) {
+	exports.dispatcher = function(commands) {
 		
-		function parseline(line) {
-			if (! line.match(/\s/)) {
-				line += ' ';
+		// returns one of :-
+		//  {parseerror: message}
+		//  {runerror: message}
+		//  {result: result}
+		function dispatch(context,commandline) {
+			
+			function parseline(line) {
+				if (! line.match(/\s/)) {
+					line += ' ';
+				}
+				var r = line.match(/^(\S+)\s+(.*)?$/);
+				if (!r) {
+					throw new TrackException('Unrecognized command-line format','dispatch');
+				}
+				return {command: r[1], args: r[2]};
 			}
-			var r = line.match(/^(\S+)\s+(.*)?$/);
-			if (!r) {
-				throw new Error("Unrecognized command-line format")
+			
+			try {
+				var parts = parseline(commandline);
 			}
-			return {command: r[1], args: r[2]};
+			catch (ex) {
+				return {parseerror: ex.toString()};
+			}
+			
+			if (!(parts.command in commands)) {
+				return {parseerror: "Unrecognized command: "+parts.command};
+			}
+			
+			try {
+				return {result: commands[parts.command](context,parts.command,parts.args)};
+			}
+			catch (ex) {
+				return {runerror: ex.toString()};
+			}
 		}
 		
-		try {
-			var parts = parseline(commandline);
-		}
-		catch (ex) {
-			return {parseerror: ex.toString()};
-		}
-		
-		if (!(parts.command in commands)) {
-			return {parseerror: "Unrecognized command: "+parts.command};
-		}
-		
-		try {
-			return {result: commands[parts.command](context,parts.command,parts.args)};
-		}
-		catch (ex) {
-			return {runerror: ex.toString()};
-		}
-	}
-	
-	return dispatch;
-};
+		return dispatch;
+	};
+
+})();

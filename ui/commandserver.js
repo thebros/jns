@@ -14,12 +14,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var url = require('url');
 	var logmessage = require('../util/logging.js').logmessage;
 	var util = require('util');
+	var TrackException = require('../exceptions/track.js').TrackException;
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
 	
 	// call with 'new'!
-	exports.Server = function(webroot,portno,routes) {
+	exports.Server = exwrap(function Server(webroot,portno,routes) {
 
 		if (this==global) {
-			throw new Error("commandserver.Server must be called with 'new'")
+			throw new TrackException("commandserver.Server must be called with 'new'",'Server');
 		}
 		
 		var staticroute = {urlpath: '/static', filepath: webroot+'/static'};
@@ -30,10 +32,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		}
 		
 		return this;
-	}
+	});
 	
-	exports.stdres = function(result,res) {
-		
+	exports.stdres = exwrap(function stdres(result,res) {
+
+		logmessage('result='+util.inspect(result,true,2,true));		
 		var innerresult = result.result;
 		logmessage('commandserver.stdres: route.handler returning '+util.inspect(innerresult,true,2,true));
 		
@@ -48,13 +51,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		logmessage(content_type+': '+resultx);
 		res.writeHead(200,{'Content-type': content_type});
 		res.end(resultx);
-	}
+	});
 
-	exports.errorres = function(result,res) {		
+	exports.errorres = exwrap(function errorres(result,res) {		
 		logmessage('commandserver.errorres: route.handler returning '+result);		
 		res.writeHead(500,{'Content-type': 'text/plain'});
 		res.end(result);
-	}
+	});
 
 	function makeserver(webroot,routes,staticroute) {
 		

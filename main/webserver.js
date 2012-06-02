@@ -34,19 +34,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						errorres(err,res);
 					}
 					else {
-						stdres(data,res);
+						stdres({result: data},res);
 					}
 				});
 			}
 			else {
-				stdres('index '+req.params.top,res);
+				stdres({result: 'index '+req.params.top},res);
 			}
 		}
 	}
 	
 	function webhandler_status() {		
 		return function(webroot,req,res) {
-			stdres('status '+req.params.id,res);
+			stdres({result: 'status '+req.params.id},res);
 		}
 	}
 	

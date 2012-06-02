@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 (function() {
 
 	var registry_idpath = 'sys.registry';
+	var TrackException = require('../exceptions/track.js').TrackException;
 	
 	exports.Subsystem = function(jns) {
 		this.jns = jns;
@@ -97,7 +98,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 	function broadcast(idpathprefix,message) {
 		
-		var regex = /: unknown message - /; // a hack, should subclass Error
+		var regex = /unknown message - /; // a hack, should subclass Error
 		var idpath;
 		for (idpath in this.registry) {
 			if (idpath.substring(0,idpathprefix.length-1) == idpathprefix) {
@@ -130,7 +131,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			return 'System Registry';
 		}
 		else {
-			throw new Error(registry_idpath+': unknown message - '+message.messagetype);
+			throw new TrackException('unknown message - '+message.messagetype,registry_idpath);
 		}
 	}
 	
