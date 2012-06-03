@@ -12,7 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	var registry_idpath = 'sys.registry';
 	var TrackException = require('../exceptions/track.js').TrackException;
-	
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
+
 	exports.Subsystem = function(jns) {
 		this.jns = jns;
 		this.registry = {};
@@ -38,29 +39,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	// handler.message should take (idpath,message) as parameters
 	function register(idpath,handler) {
 		if (typeof handler == 'undefined') {
-			this.jns.subsystem_error('registry.register','handler not defined');
+			throw new TrackException('handler not defined','registry.register');
 		}
 		if (typeof this.registry[idpath] != 'undefined') {
-			this.jns.subsystem_warning('registry.register','key already in registry: '+idpath);
+			throw new TrackException('key already in registry: '+idpath,'registry.register');
 		}
 		this.registry[idpath] = handler;
 	}
 	
 	function unregister(idpath) {
 		if (typeof this.registry[idpath] == 'undefined') {
-			this.jns.subsystem_warning('registry.unregister','key not in registry: '+idpath);
+			throw new TrackException('key not in registry: '+idpath,'registry.unregister');
 		}
 		else {
 			delete this.registry[idpath];
 		}
 	}
 	
-	function send(idpath,message) {
+	var send = exwrap(function send(idpath,message) {
 	
 		var that = this;
 		
 		if (! idpath) {
-			this.jns.subsystem_error('registry.send','empty idpath passed to send');
+			throw new TrackException('empty idpath passed to send','registry.send');
 		}
 		
 		var dest = idpath;
@@ -75,7 +76,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			dest = withoutlast(dest);
 		} while (dest);
 		
-		this.jns.subsystem_error('registry.send','key not in registry: '+idpath);
+		throw new TrackException('key not in registry: '+idpath,'registry.send');
 		
 		function sendto(dest,idpath,message) {		
 			var handler = that.registry[dest];
@@ -94,7 +95,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				return s.substring(0,poslastdot);
 			}
 		}
-	}
+	});
 	
 	function broadcast(idpathprefix,message) {
 		

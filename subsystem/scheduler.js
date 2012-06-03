@@ -9,6 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 (function() {
+
+	var TrackException = require('../exceptions/track.js').TrackException;
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
 	
 	exports.Subsystem = function(jns) {
 		this.jns = jns;
@@ -22,10 +25,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	// handler.message should take (idpath,message) as parameters
 	function schedule(idpath,interval,handler) {
 		if (typeof handler == 'undefined') {
-			this.jns.subsystem_error('scheduler.schedule','handler not defined');
+			throw new TrackException('given handler is undefined','scheduler.schedule');
 		}
 		if (typeof this.scheduletable[idpath] != undefined) {
-			this.jns.subsystem_warning('scheduler.schedule','key already in schedule: '+idpath);
+			throw new TrackException('key already in schedule: '+idpath,'scheduler.schedule');
 		}
 		this.scheduletable[idpath] = {
 			ticksInterval: interval,
@@ -36,14 +39,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 	function unschedule(idpath) {
 		if (typeof this.scheduletable[idpath] == 'undefined') {
-			this.jns.subsystem_warning('scheduler.unschedule','key not in schedule: '+idpath);
+			throw new TrackException('key not in schedule: '+idpath,'scheduler.unschedule');
 		}
 		else {
 			delete this.scheduletable[idpath];
 		}
 	}
 	
-	function once() {
+	var once = exwrap(function once() {
 		for (var idpath in this.scheduletable) {
 			if (this.scheduletable.hasOwnProperty(idpath)) {
 				var task = this.scheduletable[idpath];
@@ -53,12 +56,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						task.taskHandler(idpath,{messagetype:".once", messageargs: []});
 					}
 					catch (err) {
-						this.jns.subsystem_error('scheduler.once: error running task '+idpath+' - '+err.toString());
+						throw new TrackException('error running task '+idpath+' - '+err.toString(),'scheduler.once');
 					}
 				}
 			}
 		}
-	}
+	});
 	
 })();
 

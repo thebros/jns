@@ -11,7 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 (function(){
 	
 	var logmessage = require('../util/logging.js').logmessage;
-	
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
+
 	var options = {
 	   host: 'localhost',
 	   port: 9913,
@@ -21,26 +22,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	var http = require('http');
 
-	exports.send = function(message,callback,logres) {
+	exports.send = exwrap(function(message,callback,logres) {
 		
 		var tosend;
 		
 		var req = http.request(options, function(res) {
 			if (logres) {
-				logmessage('STATUS: ' + res.statusCode);
-				logmessage('HEADERS: ' + JSON.stringify(res.headers));
+				logmessage('commandclient.request.info: STATUS: ' + res.statusCode);
+				logmessage('commandclient.request.info: HEADERS: ' + JSON.stringify(res.headers));
 			}
 			res.setEncoding('utf8');
 			res.on('data', function (chunk) {
 		    	if (logres) {
-					logmessage('BODY: ' + chunk);
+					logmessage('commandclient.request.info: BODY: ' + chunk);
 				}
 				callback(chunk);
 			});
 		});
 
 		req.on('error', function(e) {
-		  logmessage('problem with request: ' + e.message);
+		  logmessage('commandclient.request.error: problem with request: ' + e.message);
 		});
 
 		req.setHeader('Transfer-Encoding','chunked');
@@ -49,11 +50,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		// write data to request body
 		tosend = JSON.stringify({src: message});
 		if (logres) {
-			logmessage('sending: '+tosend);
+			logmessage('commandclient.request.info: sending: '+tosend);
 		}
 		req.write(tosend);
 
 		req.end();
-	}
+	});
 	
 })();

@@ -12,7 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	var express = require('express');
 	var url = require('url');
-	var logmessage = require('../util/logging.js').logmessage;
+	var logging = require('../util/logging.js');
+	var logmessage = logging.logmessage;
+	var show = logging.show;
 	var util = require('util');
 	var TrackException = require('../exceptions/track.js').TrackException;
 	var exwrap = require('../exceptions/exwrap.js').exwrap;
@@ -36,9 +38,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 	exports.stdres = exwrap(function stdres(result,res) {
 
-		logmessage('result='+util.inspect(result,true,2,true));		
+		logmessage('commandserver.stdres.info: result='+show(result));		
 		var innerresult = result.result;
-		logmessage('commandserver.stdres: route.handler returning '+util.inspect(innerresult,true,2,true));
+		logmessage('commandserver.stdres.info: route.handler returning '+show(innerresult));
 		
 		if (innerresult.substring(0,1)=='<') {
 			content_type = 'text/html';
@@ -48,15 +50,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			content_type = 'application/json';
 			resultx = JSON.stringify(result);
 		}
-		logmessage(content_type+': '+resultx);
+		logmessage('commandserver.stdres.info: '+content_type+': '+resultx);
 		res.writeHead(200,{'Content-type': content_type});
 		res.end(resultx);
 	});
 
 	exports.errorres = exwrap(function errorres(result,res) {		
-		logmessage('commandserver.errorres: route.handler returning '+result);		
+		logmessage('commandserver.errorres.info: route.handler returning '+show(result));		
 		res.writeHead(500,{'Content-type': 'text/plain'});
-		res.end(result);
+		res.end(JSON.stringify(result));
 	});
 
 	function makeserver(webroot,routes,staticroute) {
@@ -106,19 +108,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 	function wraphandler(webroot,route) {
 	
-		return function(req,res) {
+		return exwrap(function wrap(req,res) {
 			var result;
 			var message;
 			var resultx;
 			var content_type;
-			logmessage('serving '+route.method+' '+route.path);
-			try {
-				route.handler(webroot,req,res);
-			}
-			catch (ex) {				
-				logmessage("Exception in commandserver.wraphandler: "+ex.toString());
-			}			
-		}
+			logmessage('commandserver.wraphandler.info: serving '+route.method+' '+route.path);
+			route.handler(webroot,req,res);
+		});
 	}
 })();
 

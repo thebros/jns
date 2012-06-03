@@ -22,7 +22,7 @@ exports.isrunningpid = function(pid) {
 		var datastr = data.toString();
 		
 		while (matches=regex.exec(datastr)) {
-			logmessage("matches[1]=<"+matches[1]+">");
+			logmessage("os.isrunningpid.debug: matches[1]=<"+matches[1]+">");
 			if (matches[1]==pid) {
 				found = true;
 			}
@@ -30,7 +30,7 @@ exports.isrunningpid = function(pid) {
 	});
 
 	ps.stderr.on('data', function (data) {
-	  logmessage('ps stderr:',data.toString());
+	  logmessage('os.isrunningpid.error: ps stderr:',data.toString());
 	});
 	
 	return found;

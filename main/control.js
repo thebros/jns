@@ -20,39 +20,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var command_routes = require('./commands.js').routes;
 	var webserver_routes = require('./webserver.js').routes;
 	var TrackException = require('../exceptions/track.js').TrackException;
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
 	
-	exports.init = function(thejns) {
+	exports.init = exwrap(function init(thejns) {
 		jns = thejns;
-		logmessage('JNS '+main_version);
+		logmessage('| JNS '+main_version+' startup up');
 		jns.registry.register(main_idpath,messagehandler);
-	}
+	});
 
-	exports.startCommandServer = function(webroot,port) {	
-		logmessage('- about to listen on port '+port);
+	exports.startCommandServer = exwrap(function startCommandServer(webroot,port) {	
+		logmessage('main.startup.server.command.info: about to listen on port '+port);
 		jns.commandserver = new CommandServer(webroot,port,command_routes(jns));
 		jns.commandserver.listen();
-	};
+	});
 	
-	exports.startWebServer = function(webroot,port) {
-		logmessage('- about to listen on port '+port);
+	exports.startWebServer = exwrap(function startWebServer(webroot,port) {
+		logmessage('main.startup.server.web.info: about to listen on port '+port);
 		jns.webserver = new CommandServer(webroot,port,webserver_routes(jns));
 		jns.webserver.listen();		
-	}
+	});
 	
-	function messagehandler(idpath,message) {
+	var messagehandler = exwrap(function messagehandler(idpath,message) {
 		jns.messaging.noforeignidpath(idpath,main_idpath);
-		logmessage("messagehandler: "+message.messagetype);
+		logmessage("main.messagehandler.info: "+message.messagetype);
 		switch (message.messagetype) {
 			case 'basic.identify': return 'JNS '+main_version;
 			case 'basic.shutdown':
 				if (! jns.shuttingdown) {
 					jns.shuttingdown = true;
 					jns.registry.broadcast('sys.','basic.shutdown');
-					logmessage('main shutting down');
+					logmessage('| JNS shutting down');
 					process.exit(0);
 				}
 			default: throw new TrackException('unknown message - '+message.messagetype,main_idpath);
 		}
-	}
+	});
 
 })();

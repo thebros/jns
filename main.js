@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	jns.spawn = require('child_process').spawn;
 
-	logmessage('- loading subsystems');
+	logmessage('main.startup.info: loading subsystems');
 	load_subsystems();
 		
 	jns.control = require('./main/control.js');
@@ -39,7 +39,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		jns.control.startCommandServer(jns.webroot,9913);
 		jns.control.startWebServer(jns.webroot,9914);
 		
-		logmessage('- startup');
+		logmessage('main.startup.info: principal startup');
 		startup();
 	
 		logwrap(mainloop);
@@ -61,22 +61,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	}
 
 
-	jns.subsystem_error = function(subsystem,mess) {
-		logmessage("ERROR: "+subsystem+" - "+mess);
-	}
-
-
-	jns.subsystem_warning = function(subsystem,mess) {
-		logmessage("WARNING: "+subsystem+" - "+mess);
-	}
-
-
 	function load_subsystems() {
 		var subsystems = ["registry","messaging","scheduler"];
 		var ss;
 		for (var s in subsystems) {
 			ss = subsystems[s];
-			logmessage('-- '+ss);
+			logmessage('main.startup.subsystems.info: loading '+ss);
 			jns[ss] = new require('./subsystem/'+ss+'.js').Subsystem(jns);
 		}
 	}

@@ -10,11 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 (function() {
 
-	var logmessage = require('../util/logging.js').logmessage;
+	var logging = require('../util/logging.js');
+	var logmessage = logging.logmessage;
+	var show = logging.show;
 	var dispatch_module = require('../util/dispatch.js');
 	var cs = require('../ui/commandserver.js');
 	var stdres = cs.stdres;
 	var errorres = cs.errorres;
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
 
 	exports.routes = function(jns) {
 		return [
@@ -22,7 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		];
 	};
 
-	function commandhandler(jns) {
+	var commandhandler = exwrap(function commandhandler(jns) {
 	
 		var commands = {
 			
@@ -34,15 +37,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				return jns.registry.dump();
 			},
 			
-			send: function(jns,command,args) {
+			send: exwrap(function(jns,command,args) {
 				var argarr = args.split(/\s*,\s*/);
 				var dest = argarr[0];
 				var messagetype = argarr[1];
 				if (argarr.length < 2) {
 					return jns.registry.send(dest,{error:'expected arguments: dest,messagetype'});
 				}
-				return jns.registry.send(message.dest,{source: "sys.console", dest: dest, messagetype: messagetype});
-			}
+				return jns.registry.send(dest,{source: "sys.console", dest: dest, messagetype: messagetype});
+			}),
+			
+			log: exwrap(function(jns,command,args) {
+				logging.setfilter(args);
+				return logging.currentfilter();
+			})
 		};
 		
 		var dispatch = dispatch_module.dispatcher(commands)
@@ -50,28 +58,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		return function(webroot,req,res) {
 		
 			var line = req.body.src;
-			logmessage("main command: "+line);
+			logmessage("command.line.info: "+line);
 			
 			var result = dispatch(jns,line);
+			logmessage('command.result.info: '+show(result));
 			
 			if ('parseerror' in result) {
-				errorres("error parsing command: "+result.parseerror,res);
+				errorres({error: 'error parsing command: '+result.parseerror},res);
 				return;
 			}
 			
 			if ('runerror' in result) {
-				errorres("error running command: "+result.runerror,res);
+				errorres({error: 'error running command: '+result.runerror},res);
 				return;
 			}
 			
 			if ('result' in result) {
-				logmessage("main result: "+result.result);
 				stdres(result,res);
 				return;
 			}
 			
-			errorres('internal error: no known key in dispatch result - '+line,res);
+			errorres({error: 'internal error: no known key in dispatch result - '+line},res);
 		}
-	}
+	});
 	
 })();

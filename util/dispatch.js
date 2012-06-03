@@ -12,14 +12,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 (function() {
 
 	var TrackException = require('../exceptions/track.js').TrackException;
-	
+	var exwrap = require('../exceptions/exwrap.js').exwrap;
+
 	exports.dispatcher = function(commands) {
 		
 		// returns one of :-
 		//  {parseerror: message}
 		//  {runerror: message}
 		//  {result: result}
-		function dispatch(context,commandline) {
+		var dispatch = exwrap(function dispatch(context,commandline) {
 			
 			function parseline(line) {
 				if (! line.match(/\s/)) {
@@ -49,7 +50,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			catch (ex) {
 				return {runerror: ex.toString()};
 			}
-		}
+		});
 		
 		return dispatch;
 	};

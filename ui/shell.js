@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			var line;
 			
 			if (err) {
-				logmessage(err);
+				logmessage('shell.interactive.error: '+err);
 			}
 			
 			else {

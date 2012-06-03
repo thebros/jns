@@ -10,17 +10,57 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 (function() {
 	
+	var util = require('util');
 	var wrapper = require('../debugging/wrapper.js');
 
+	var allregex = /(^\| )|(\berror\b)/;
+	var filterregex = null;
+	
 	exports.logmessage = function(message) {
-		console.log(message);
+		if (filter(message)) {
+			console.log(message);			
+		}
+	};
+	
+	exports.setfilter = function(thefilterregex) {
+		
+		switch (typeof thefilterregex) {
+			case 'string':
+				if (thefilterregex == 'all') {
+					filterregex = null;
+				}
+				else {
+					filterregex = new RegExp(thefilterregex);
+				}
+				return;
+			case 'object':
+				if (thefilterregex && thefilterregex.constructor==RegExp) {
+					filterregex = thefilterregex;
+					return;
+				}
+		};
+		
+		console.log('illegal call to setfilter: '+thefilterregex);
+	}
+	
+	exports.currentfilter = function() {
+		if (filterregex) {
+			return filterregex.source;
+		}
+		else {
+			return 'ALL';
+		}
+	}
+	
+	exports.show = function(value) {
+		return util.inspect(value,true,2,true);
 	}
 	
 	exports.logwrap = function(fun) {
 		
 		var funname = fun.name;
 		
-		function handler(calltype,args) {logmessage(funname+" "+calltype+" "+args);}
+		function handler(calltype,args) {logmessage('logwrap.trace: '+funname+" "+calltype+" "+args);}
 		
 		var handlertable = {
 			onwrapexception: handler,
@@ -30,6 +70,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		};
 		
 		return wrapper.wrapfunction(fun,handlertable);
+	};
+	
+	function filter(message) {
+		return !filterregex || allregex.test(message) || filterregex.test(message);
 	}
 	
 })();
