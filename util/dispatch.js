@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var TrackException = require('../exceptions/track.js').TrackException;
 	var exwrap = require('../exceptions/exwrap.js').exwrap;
 
-	exports.dispatcher = function(commands) {
+	function dispatcher(commands) {
 		
 		// returns one of :-
 		//  {parseerror: message}
@@ -54,5 +54,74 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		
 		return dispatch;
 	};
+	exports.dispatcher = dispatcher;
+	
+	
+	var commands =  {
+		testcommand: function(context,command,args) {
+			return context+','+command+','+args;
+		}
+	};
+	
+	exports.tester = {
+
+		commands: commands,
+			
+		doalltests: function() {
+			var dispatch = dispatcher(commands);
+			return [dodispatchtest_succ(dispatch),dodispatchtest_fail(dispatch)];
+		}
+	};
+	
+	
+	function dodispatchtest_succ(dispatch) {
+	
+		var context = 'context1';
+		var args = 'args1';
+		var expected = context+',testcommand,'+args;
+		
+		var result = dispatch(context,'testcommand '+args);
+		
+		if ('result' in result) {
+			if (result.result != expected) {
+				return {fail: {obs: result.result, exp: expected}};
+			}
+			return {ok: ''};
+		}
+		
+		if ('parseerror' in result) {
+			return {fail: {obs: '(parseerror)', exp: expected}};
+		}
+		
+		if ('runerror' in result) {
+			return {fail: {obs: '(runerror)', exp: expected}};
+		}
+		
+		throw new TrackException('unrecognized return from \'dispatch\': '+show(result),'dodispatchtest_succ');
+	}
+
+
+	function dodispatchtest_fail(dispatch) {
+	
+		var context = 'context2';
+		var args = 'args2';
+		var expected = '(parseerror)'; // not compared directly with result from dispatch
+		
+		var result = dispatch(context,'boguscommand',args);
+		
+		if ('result' in result) {
+			return {fail: {obs: '(some result)', exp: expected}};
+		}
+		
+		if ('parseerror' in result) {
+			return {ok: ''};
+		}
+		
+		if ('runerror' in result) {
+			return {fail: {obs: '(runerror)', exp: expected}};
+		}
+		
+		throw new TrackException('unrecognized return from \'dispatch\': '+show(result),'dodispatchtest_fail');
+	}
 
 })();

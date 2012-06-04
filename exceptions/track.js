@@ -8,24 +8,44 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-function TrackException(message,locus) {
 
-	if (this==global) {
-		throw new Error("TrackException must be called with 'new'")
-	}	
+(function() {
+
+	exports.TrackException = function (message,locus) {
 	
-	this.message = message;
-	if (locus) {
-		this.message += " in '"+locus+"'";
+		if (this==global) {
+			throw new Error("TrackException must be called with 'new'")
+		}	
+	
+		if (typeof message=='object' && message) {
+			this.innerexception = message;
+		}
+		else {
+			this.innerexception = new Error(message);
+		}
+	
+		this.message = '';	
+		if (locus) {
+			this.message += " in '"+locus+"'";
+		}
+		
+		this.toString = function() {
+			return this.innerexception.toString()+this.message;
+		};
+		
+		this.append = function(message,locus) {
+			this.message += '\n';
+			if (message || locus) {
+				if (message) {
+					this.message += message;
+				}
+				if (locus) {
+					this.message += " in '"+locus+"'";
+				}
+			}
+			else {
+				this.message += '(no information for this frame)';
+			}					
+		}
 	}
-	
-	this.toString = function() {
-		return this.message;
-	};
-	
-	this.append = function(locus) {
-		locus = locus ? locus : '(unknown)';
-		this.message += "\n in '"+locus+"'";
-	}
-}
-exports.TrackException = TrackException;
+})();

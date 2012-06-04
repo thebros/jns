@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var command_routes = require('./commands.js').routes;
 	var webserver_routes = require('./webserver.js').routes;
 	var TrackException = require('../exceptions/track.js').TrackException;
+	var UnknownMessage = require('../exceptions/sys.js').UnknownMessage;
 	var exwrap = require('../exceptions/exwrap.js').exwrap;
 	
 	exports.init = exwrap(function init(thejns) {
@@ -52,7 +53,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 					logmessage('| JNS shutting down');
 					process.exit(0);
 				}
-			default: throw new TrackException('unknown message - '+message.messagetype,main_idpath);
+			default: throw new UnknownMessage(message.messagetype,main_idpath);
 		}
 	});
 

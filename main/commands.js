@@ -38,12 +38,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			},
 			
 			send: exwrap(function(jns,command,args) {
+				if (!(/,/.test(args))) {
+					return 'expected 2 arguments: DEST,MESSAGETYPE';
+				}
 				var argarr = args.split(/\s*,\s*/);
 				var dest = argarr[0];
 				var messagetype = argarr[1];
-				if (argarr.length < 2) {
-					return jns.registry.send(dest,{error:'expected arguments: dest,messagetype'});
-				}
 				return jns.registry.send(dest,{source: "sys.console", dest: dest, messagetype: messagetype});
 			}),
 			

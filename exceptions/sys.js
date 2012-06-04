@@ -8,28 +8,21 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-exports.exwrap = function(fun) {
 
-	var TrackException = require('./track.js').TrackException;
-	
-	return function() {
-		try {
-			return fun.apply(this,arguments);
-		}
-		catch (ex) {
-			var funname = fun.name ? fun.name : '(function)';
-			var message;
-			if (typeof ex=='object' && ex) {
-				if (ex.constructor == TrackException) {
-					throw ex.append(message,funname);
-				}
-				message = ex.message ? ex.message : '';
-			}
-			else {
-				message = ex;
-			}
-				
-			throw new TrackException(message,funname);
+(function() {
+
+	exports.UnknownMessage = function(message,locus) {
+
+		if (this==global) {
+			throw new Error("UnknownMessage must be called with 'new'")
+		}	
+
+		this.message = message;
+		this.locus = locus;
+		
+		this.toString = function() {
+			return this.locus+': unknown message - '+this.message;
 		}
 	}
-}
+	
+})();
