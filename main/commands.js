@@ -68,21 +68,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			logmessage('command.result.info: '+show(result));
 			
 			if ('parseerror' in result) {
-				errorres({error: 'error parsing command: '+result.parseerror},res);
+				errorres('error parsing command: '+result.parseerror,res);
 				return;
 			}
 			
 			if ('runerror' in result) {
-				errorres({error: 'error running command: '+result.runerror},res);
+				errorres('error running command: '+result.runerror,res);
 				return;
 			}
 			
 			if ('result' in result) {
-				stdres(result,res);
+				stdres(result.result,res);
 				return;
 			}
 			
-			errorres({error: 'internal error: no known key in dispatch result - '+line},res);
+			errorres('internal error: no known key in dispatch result - '+line,res);
 		}
 	});
 	

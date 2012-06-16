@@ -39,16 +39,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	exports.stdres = exwrap(function stdres(result,res) {
 
 		logmessage('commandserver.stdres.info: result='+show(result));		
-		var innerresult = result.result;
-		logmessage('commandserver.stdres.info: route.handler returning '+show(innerresult));
 		
-		if (innerresult.substring(0,1)=='<') {
+		if (result.substring(0,1)=='<') {
 			content_type = 'text/html';
-			resultx = innerresult;
+			resultx = result;
 		}
 		else {
 			content_type = 'application/json';
-			resultx = JSON.stringify(result);
+			resultx = JSON.stringify({result: result});
 		}
 		logmessage('commandserver.stdres.info: '+content_type+': '+resultx);
 		res.writeHead(200,{'Content-type': content_type});
@@ -58,7 +56,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	exports.errorres = exwrap(function errorres(result,res) {		
 		logmessage('commandserver.errorres.info: route.handler returning '+show(result));		
 		res.writeHead(500,{'Content-type': 'text/plain'});
-		res.end(JSON.stringify(result));
+		res.end(JSON.stringify({error: result}));
 	});
 
 	function makeserver(webroot,routes,staticroute) {

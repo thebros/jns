@@ -36,23 +36,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				file_contents(webroot+indexpath,function(err,data) {
 					if (err) {
 						console.log(' - error loading: '+err);
-						errorres({error: err},res);
+						errorres(err,res);
 					}
 					else {
 						console.log(' - loaded: '+data);
-						stdres({result: data},res);
+						stdres(data,res);
 					}
 				});
 			}
 			else {
-				stdres({result: 'index '+req.params.top},res);
+				stdres('index '+req.params.top,res);
 			}
 		});
 	}
 	
 	function webhandler_status() {		
 		return exwrap(function webhandler_status_handler(webroot,req,res) {
-			stdres({result: 'status '+req.params.id},res);
+			stdres('status '+req.params.id,res);
 		});
 	}
 	
