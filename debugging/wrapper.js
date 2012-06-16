@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 (function() {
+
+	var assert = require('assert');
 	
 	exports.wrapmodule = function(modulename,handler) {
 
@@ -39,6 +41,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	};
 	
 	function wrapfunction(fun,handlertable) {
+		assert.equal(typeof fun,'function');
 		return function () {
 			var result;
 			try {

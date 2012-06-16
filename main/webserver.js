@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	var stdres = cs.stdres;
 	var errorres = cs.errorres;
 	var exwrap = require('../exceptions/exwrap.js').exwrap;
+	var logging = require('../util/logging.js');
 
 	exports.routes = function(jns) {
 		return [
@@ -29,12 +30,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		var indexpath = '/index.html';
 		return exwrap(function webhandler_index_handler(webroot,req,res) {
 			requrl = url.parse(req.url,true);
+			console.log('requrl='+logging.show(requrl));
 			if (requrl.pathname == indexpath) {
+				console.log('loading '+webroot+indexpath);
 				file_contents(webroot+indexpath,function(err,data) {
 					if (err) {
+						console.log(' - error loading: '+err);
 						errorres({error: err},res);
 					}
 					else {
+						console.log(' - loaded: '+data);
 						stdres({result: data},res);
 					}
 				});
@@ -51,8 +56,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		});
 	}
 	
-	var file_contents = exwrap(function file_contents(path) {
-		return fs.readFileSync(path,'utf8');
+	var file_contents = exwrap(function file_contents(path,callback) {
+		return fs.readFile(path,'utf8',callback);
 	});
 	
 

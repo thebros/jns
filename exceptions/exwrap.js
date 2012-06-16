@@ -11,6 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 exports.exwrap = function(fun) {
 
 	var TrackException = require('./track.js').TrackException;
+	var assert = require('assert');
+
+	assert.equal(typeof fun,'function');
 	
 	return function() {
 		try {

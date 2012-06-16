@@ -44,7 +44,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		
 		if (innerresult.substring(0,1)=='<') {
 			content_type = 'text/html';
-			resultx = result;
+			resultx = innerresult;
 		}
 		else {
 			content_type = 'application/json';

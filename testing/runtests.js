@@ -9,12 +9,50 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 
-// if a test succeeds: {ok: ''}
-// if a test fails: {fail: {obs: OBSERVED, exp: EXPECTED}};
 (function() {
 
-
-	exports.testmodule = function(modulepath) {
+	var fs = require('fs');
+	var path = require('path');
+	
+	var TrackException = require('../exceptions/track.js').TrackException;
+	var testdefs = require('./testdefs.js');	
+	
+	
+	// returns an object keyed by filepath with TestModule values
+	exports.testsubtree = function(subtreepath) {
+	
+		var subtreeresults = {};
+		testsubtree_impl(subtreepath,subtreeresults);
+		return subtreeresults;
+	
+		function testsubtree_impl(filepath,results)	{
+		
+			var stats = fs.statSync(filepath);
+			
+			if (stats.isFile() && path.extname(filepath).toUpperCase()=='.JS') {
+				results[filepath] = testmodule(filepath);
+				return;
+			}
+			
+			if (stats.isDirectory()) {
+				testsubtree_impl_dir(filepath,results);
+				return;
+			}
+			
+			// (if it's not a file or a dir: ignore it)
+		}
+		
+		function testsubtree_impl_dir(filepath,results) {
+			var files = fs.readdirSync(filepath);
+			for (var f in files) {
+				testsubtree_impl(path.join(filepath,files[f]),results);
+			}
+		}
+	}
+	
+	
+	// returns a TestModule object
+	function testmodule(modulepath) {
 	
 		var m;
 		var tester;
@@ -24,23 +62,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			m = require(modulepath);
 		}
 		catch (ex) {
-			return {error: ex.toString(), modulepath: modulepath, where: 'require'};
+			return new testdefs.TestModule(modulepath,new testdefs.ErrorModuleResult(ex.toString()));
 		}
 		
 		tester = m.tester;
 		if (typeof tester == 'undefined') {
-			return {warning: 'no \'tester\' property', modulepath: modulepath, where: 'get tester'};
+			return new testdefs.TestModule(modulepath,new testdefs.WarningModuleResult('module exports no \'tester\' property'));
 		}
 		
 		try {
-			testresults = capture(function() {return tester.doalltests();});
+			testresults = capture(function() {
+				return new testdefs.TestModule(modulepath,tester.doalltests()); // doalltests should return a XxxModuleResult object
+			});
 		}
 		catch (ex) {
-			return {error: ex.toString(), modulepath: modulepath, where: 'runtest'};
+			return new testdefs.TestModule(modulepath,new testdefs.ErrorModuleResult(ex.toString()));
 		}
 
-		return {results: testresults, modulepath: modulepath};
+		return testresults.result;
 	};
+	exports.testmodule = testmodule;
 	
 	
 	exports.modulereport = function(testoutcome) {
@@ -73,15 +114,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		}
 		
 		function singleresultreport(singleresult) {
+			var testname = singleresult.name;
 			if ('ok' in singleresult) {
-				return 'ok';
+				return testname+' OK';
 			}
 			var failure = singleresult.fail;
-			return 'fail ('+failure.obs+' <> '+failure.exp+')';
+			return testname+' *FAIL* ('+failure.obs+' <> '+failure.exp+')';
 		}
 	}
 	
-	
+		
 	function capture(fun) {
 	
 		var oldlog = console.log;

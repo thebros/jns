@@ -10,10 +10,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 <html>
 <body title="first">
 <script lang="javascript">
+
 function setup() {
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.open('GET','http:/localhost:9914/status/test',false);
+	xmlhttp.open('GET','http:/localhost:9914/status/test',true);
+	var reqtimer = setTimeout(onRequestTimeout, 2000);
+	xmlhttp.onreadystatechange = onStateChange;
 	xmlhttp.send();
+	
+	// -----
+	
+	function onRequestTimeout() {
+		xmlhttp.abort();
+		alert('request timed out');
+	}
+	
+	function onStateChange() {
+		if (xmlhttp.readyState != 4) {
+			return;
+		}
+		clearTimeout(reqtimer);
+		if (xmlhttp.status != 200) {
+			alert('status '+xmlhttp.status);
+			return;
+		}
+		
+		var res = xmlhttp.responseText;
+		var obj = {result: '?? '+res};
+		try {
+			obj = JSON.parse(res);
+		}
+		catch (SyntaxError) {
+			//
+		}
+		
+		alert(obj.result);
+	}
 }
 
 function addLoadEvent(func) {

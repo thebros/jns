@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	var TrackException = require('../exceptions/track.js').TrackException;
 	var exwrap = require('../exceptions/exwrap.js').exwrap;
+	var testdefs = require('../testing/testdefs.js');
 
 	function dispatcher(commands) {
 		
@@ -69,13 +70,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			
 		doalltests: function() {
 			var dispatch = dispatcher(commands);
-			return [dodispatchtest_succ(dispatch),dodispatchtest_fail(dispatch)];
+			return new testdefs.TestsModuleResult([dodispatchtest_succ(dispatch),dodispatchtest_fail(dispatch)]);
 		}
 	};
 	
 	
+	// returns a Test object
 	function dodispatchtest_succ(dispatch) {
 	
+		var testname = 'dispatchtest_succ';
 		var context = 'context1';
 		var args = 'args1';
 		var expected = context+',testcommand,'+args;
@@ -84,25 +87,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		
 		if ('result' in result) {
 			if (result.result != expected) {
-				return {fail: {obs: result.result, exp: expected}};
+				return new testdefs.Test(testname,new testdefs.FailOutcome(result.result,expected));
 			}
-			return {ok: ''};
+			return new testdefs.Test(testname,new testdefs.OkOutcome());
 		}
 		
 		if ('parseerror' in result) {
-			return {fail: {obs: '(parseerror)', exp: expected}};
+			return new testdefs.Test(testname,new testdefs.FailOutcome('(parseerror)',expected));
 		}
 		
 		if ('runerror' in result) {
-			return {fail: {obs: '(runerror)', exp: expected}};
+			return new testdefs.Test(testname,new testdefs.FailOutcome('(runerror)',expected));
 		}
 		
 		throw new TrackException('unrecognized return from \'dispatch\': '+show(result),'dodispatchtest_succ');
 	}
 
 
+	// returns a Test object
 	function dodispatchtest_fail(dispatch) {
 	
+		var testname = 'dispatchtest_fail';
 		var context = 'context2';
 		var args = 'args2';
 		var expected = '(parseerror)'; // not compared directly with result from dispatch
@@ -110,15 +115,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		var result = dispatch(context,'boguscommand',args);
 		
 		if ('result' in result) {
-			return {fail: {obs: '(some result)', exp: expected}};
+			return new testdefs.Test(testname,new testdefs.FailOutcome('(some result)',expected));
 		}
 		
 		if ('parseerror' in result) {
-			return {ok: ''};
+			return new testdefs.Test(testname,new testdefs.OkOutcome());
 		}
 		
 		if ('runerror' in result) {
-			return {fail: {obs: '(runerror)', exp: expected}};
+			return new testdefs.Test(testname,new testdefs.FailOutcome('(runerror)',expected));
 		}
 		
 		throw new TrackException('unrecognized return from \'dispatch\': '+show(result),'dodispatchtest_fail');

@@ -29,14 +29,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 		var commands = {
 			
+			// return the internal version of jns
 			version: function(jns,command,args) {
 				return '0.1'
 			},
 			
+			// return a dump of the registry
 			registry: function(jns,command,args) {
 				return jns.registry.dump();
 			},
 			
+			// send a message and return the result
 			send: exwrap(function(jns,command,args) {
 				if (!(/,/.test(args))) {
 					return 'expected 2 arguments: DEST,MESSAGETYPE';
@@ -46,7 +49,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				var messagetype = argarr[1];
 				return jns.registry.send(dest,{source: "sys.console", dest: dest, messagetype: messagetype});
 			}),
-			
+		
+			// set the logging filter from the given arguments	
 			log: exwrap(function(jns,command,args) {
 				logging.setfilter(args);
 				return logging.currentfilter();
